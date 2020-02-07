@@ -6,9 +6,8 @@
 
 int main(void) {
 	// Create frame buffers
-	//uint8_t *origFrame = malloc(frame_buf_size);
-	uint8_t *origFrame = calloc(frame_buf_size, sizeof(uint8_t)); // <== HACK, calloc clears memory which shouldn't be neccessary
-	uint8_t *lineFrame = calloc(frame_buf_size, sizeof(uint8_t));
+	static uint8_t origFrame[frame_buf_size];
+	static uint8_t lineFrame[frame_buf_size];
 
 	// Load our raw RGB file into a uint8_t array "origFrame"
 	FILE *rgbFile = fopen("963.rgb", "rb");
@@ -29,10 +28,6 @@ int main(void) {
 	FILE *lineFile = fopen("line.rgb", "wb");
 	fwrite(lineFrame, sizeof(uint8_t), frame_buf_size, lineFile);
 	fclose(lineFile);
-
-	// Free buffers
-	free(origFrame);
-	free(lineFrame);
 
 	return 0;
 }

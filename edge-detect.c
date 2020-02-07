@@ -87,6 +87,15 @@
 #define ANNE_SKIRT_SHADE_TOLERANCE_G 15
 #define ANNE_SKIRT_SHADE_TOLERANCE_B 15
 #define ANNE_SKIRT_SHADE_MATCHING 1
+
+// #D3BB79
+#define ANNE_SHIRT_S_R 0xD3
+#define ANNE_SHIRT_S_G 0xBB
+#define ANNE_SHIRT_S_B 0x79
+#define ANNE_SHIRT_S_TOLERANCE_R 15
+#define ANNE_SHIRT_S_TOLERANCE_G 15
+#define ANNE_SHIRT_S_TOLERANCE_B 15
+#define ANNE_SHIRT_S_MATCHING 2
 /* ---  END SETTINGS  --- */
 
 // R, G, B values, then R, G, B tolerances
@@ -117,13 +126,18 @@ int surroundingPixelMatching(size_t* checkPixels, size_t checkPixelC, uint8_t* p
 	return 0;
 }
 
-int main(void) {
+int main(int argc, char *argv[]) {
+	if (argc != 2) {
+		printf("Not enough arguments\n");
+		return -1;
+	}
+	
 	// Create frame buffers
 	static uint8_t origFrame[FRAME_BUF_SIZE];
 	static uint8_t lineFrame[FRAME_BUF_SIZE];
 
 	// Load our raw RGB file into a uint8_t array "origFrame"
-	FILE *rgbFile = fopen("963.rgb", "rb");
+	FILE *rgbFile = fopen(argv[1], "rb");
 	fread(origFrame, sizeof(uint8_t), FRAME_BUF_SIZE, rgbFile);
 	fclose(rgbFile);
 
@@ -228,6 +242,12 @@ int main(void) {
 				ANNE_SHIRT_SHADE_TOLERANCE_R, ANNE_SHIRT_SHADE_TOLERANCE_G, ANNE_SHIRT_SHADE_TOLERANCE_B,
 				ANNE_SHIRT_SHADE_MATCHING
 			);
+			/*matched += surroundingPixelMatching(
+				surroundingPixels, sizeof(surroundingPixels)/sizeof(size_t), origFrame,
+				ANNE_SHIRT_S_R, ANNE_SHIRT_S_G, ANNE_SHIRT_S_B, 
+				ANNE_SHIRT_S_TOLERANCE_R, ANNE_SHIRT_S_TOLERANCE_G, ANNE_SHIRT_S_TOLERANCE_B,
+				ANNE_SHIRT_S_MATCHING
+			);*/
 			matched += surroundingPixelMatching(
 				surroundingPixels, sizeof(surroundingPixels)/sizeof(size_t), origFrame,
 				ANNE_SKIRT_R, ANNE_SKIRT_G, ANNE_SKIRT_B, 

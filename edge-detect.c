@@ -9,17 +9,27 @@
 // more than 8 bit depth is more than it's worth at this time
 #define FRAME_BUF_SIZE FRAME_WIDTH*FRAME_HEIGHT*3
 
-#define BLACK_BORDER_TOLERANCE_R 30
-#define BLACK_BORDER_TOLERANCE_G 30
-#define BLACK_BORDER_TOLERANCE_B 30
+#define BLACK_BORDER_TOLERANCE_R 50
+#define BLACK_BORDER_TOLERANCE_G 50
+#define BLACK_BORDER_TOLERANCE_B 50
 
 // #D49C72
 #define ANNE_SKIN_R 0xD4
 #define ANNE_SKIN_G 0x9C
 #define ANNE_SKIN_B 0x72
-#define ANNE_SKIN_TOLERANCE_R 15
-#define ANNE_SKIN_TOLERANCE_G 15
-#define ANNE_SKIN_TOLERANCE_B 15
+#define ANNE_SKIN_TOLERANCE_R 17
+#define ANNE_SKIN_TOLERANCE_G 17
+#define ANNE_SKIN_TOLERANCE_B 17
+#define ANNE_SKIN_MATCHING 3
+
+// #B17C63
+#define ANNE_SKIN_SHADE_R 0xB1
+#define ANNE_SKIN_SHADE_G 0x7C
+#define ANNE_SKIN_SHADE_B 0x63
+#define ANNE_SKIN_SHADE_TOLERANCE_R 17
+#define ANNE_SKIN_SHADE_TOLERANCE_G 17
+#define ANNE_SKIN_SHADE_TOLERANCE_B 17
+#define ANNE_SKIN_SHADE_MATCHING 3
 
 // #6F3C37
 #define ANNE_HAIR_R 0x6F
@@ -28,6 +38,16 @@
 #define ANNE_HAIR_TOLERANCE_R 15
 #define ANNE_HAIR_TOLERANCE_G 15
 #define ANNE_HAIR_TOLERANCE_B 15
+#define ANNE_HAIR_MATCHING 3
+
+// #5B2E30
+#define ANNE_HAIR_SHADE_R 0x5B
+#define ANNE_HAIR_SHADE_G 0x2E
+#define ANNE_HAIR_SHADE_B 0x30
+#define ANNE_HAIR_SHADE_TOLERANCE_R 15
+#define ANNE_HAIR_SHADE_TOLERANCE_G 15
+#define ANNE_HAIR_SHADE_TOLERANCE_B 15
+#define ANNE_HAIR_SHADE_MATCHING 3
 /* ---   END SETTINGS  --- */
 
 int main(void) {
@@ -100,6 +120,7 @@ int main(void) {
 			surroundingPixels[30] = (((pixel/3) + (FRAME_WIDTH*2))*3) + (3*4);
 			surroundingPixels[31] = (((pixel/3) + (FRAME_WIDTH*1))*3) + (3*4);
 
+			uint8_t matched = 0;
 			// Check if a surrounding pixel matches Anne's skin tone, accounting for tolerance settings
 			for (size_t sPixel = 0; sPixel < sizeof(surroundingPixels)/sizeof(size_t); sPixel++) {
 				//lineFrame[surroundingPixels[sPixel]] = 255;
@@ -109,11 +130,34 @@ int main(void) {
 						origFrame[surroundingPixels[sPixel]  ] >= ANNE_SKIN_R - ANNE_SKIN_TOLERANCE_R && 
 						origFrame[surroundingPixels[sPixel]+1] >= ANNE_SKIN_G - ANNE_SKIN_TOLERANCE_G && 
 						origFrame[surroundingPixels[sPixel]+2] >= ANNE_SKIN_B - ANNE_SKIN_TOLERANCE_B) {
-					lineFrame[pixel] = 0;
-					lineFrame[pixel+1] = 0;
-					lineFrame[pixel+2] = 255;
+					matched++;
 				}
 			}
+			if (matched >= ANNE_SKIN_MATCHING) {
+				lineFrame[pixel] = 0;
+				lineFrame[pixel+1] = 0;
+				lineFrame[pixel+2] = 255;
+			}
+			matched = 0;
+
+			// Check if a surrounding pixel matches Anne's skin shade colour, accounting for tolerance settings
+			for (size_t sPixel = 0; sPixel < sizeof(surroundingPixels)/sizeof(size_t); sPixel++) {
+				//lineFrame[surroundingPixels[sPixel]] = 255;
+				if (	origFrame[surroundingPixels[sPixel]  ] <= ANNE_SKIN_SHADE_R + ANNE_SKIN_SHADE_TOLERANCE_R && 
+						origFrame[surroundingPixels[sPixel]+1] <= ANNE_SKIN_SHADE_G + ANNE_SKIN_SHADE_TOLERANCE_G && 
+						origFrame[surroundingPixels[sPixel]+2] <= ANNE_SKIN_SHADE_B + ANNE_SKIN_SHADE_TOLERANCE_B &&
+						origFrame[surroundingPixels[sPixel]  ] >= ANNE_SKIN_SHADE_R - ANNE_SKIN_SHADE_TOLERANCE_R && 
+						origFrame[surroundingPixels[sPixel]+1] >= ANNE_SKIN_SHADE_G - ANNE_SKIN_SHADE_TOLERANCE_G && 
+						origFrame[surroundingPixels[sPixel]+2] >= ANNE_SKIN_SHADE_B - ANNE_SKIN_SHADE_TOLERANCE_B) {
+					matched++;
+				}
+			}
+			if (matched >= ANNE_SKIN_SHADE_MATCHING) {
+				lineFrame[pixel] = 0;
+				lineFrame[pixel+1] = 0;
+				lineFrame[pixel+2] = 255;
+			}
+			matched = 0;
 
 			// Check if a surrounding pixel matches Anne's hair colour, accounting for tolerance settings
 			for (size_t sPixel = 0; sPixel < sizeof(surroundingPixels)/sizeof(size_t); sPixel++) {
@@ -124,11 +168,34 @@ int main(void) {
 						origFrame[surroundingPixels[sPixel]  ] >= ANNE_HAIR_R - ANNE_HAIR_TOLERANCE_R && 
 						origFrame[surroundingPixels[sPixel]+1] >= ANNE_HAIR_G - ANNE_HAIR_TOLERANCE_G && 
 						origFrame[surroundingPixels[sPixel]+2] >= ANNE_HAIR_B - ANNE_HAIR_TOLERANCE_B) {
-					lineFrame[pixel] = 0;
-					lineFrame[pixel+1] = 255;
-					lineFrame[pixel+2] = 0;
+					matched++;
 				}
 			}
+			if (matched >= ANNE_HAIR_MATCHING) {
+				lineFrame[pixel] = 0;
+				lineFrame[pixel+1] = 255;
+				lineFrame[pixel+2] = 0;
+			}
+			matched = 0;
+
+			// Check if a surrounding pixel matches Anne's hair shade colour, accounting for tolerance settings
+			for (size_t sPixel = 0; sPixel < sizeof(surroundingPixels)/sizeof(size_t); sPixel++) {
+				//lineFrame[surroundingPixels[sPixel]] = 255;
+				if (	origFrame[surroundingPixels[sPixel]  ] <= ANNE_HAIR_SHADE_R + ANNE_HAIR_SHADE_TOLERANCE_R && 
+						origFrame[surroundingPixels[sPixel]+1] <= ANNE_HAIR_SHADE_G + ANNE_HAIR_SHADE_TOLERANCE_G && 
+						origFrame[surroundingPixels[sPixel]+2] <= ANNE_HAIR_SHADE_B + ANNE_HAIR_SHADE_TOLERANCE_B &&
+						origFrame[surroundingPixels[sPixel]  ] >= ANNE_HAIR_SHADE_R - ANNE_HAIR_SHADE_TOLERANCE_R && 
+						origFrame[surroundingPixels[sPixel]+1] >= ANNE_HAIR_SHADE_G - ANNE_HAIR_SHADE_TOLERANCE_G && 
+						origFrame[surroundingPixels[sPixel]+2] >= ANNE_HAIR_SHADE_B - ANNE_HAIR_SHADE_TOLERANCE_B) {
+					matched++;
+				}
+			}
+			if (matched >= ANNE_HAIR_SHADE_MATCHING) {
+				lineFrame[pixel] = 0;
+				lineFrame[pixel+1] = 255;
+				lineFrame[pixel+2] = 0;
+			}
+			matched = 0;
 		}
 	}
 

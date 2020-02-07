@@ -1,0 +1,2 @@
+Converting a PNG to raw RGB using ImageMagick:
+convert -size "1920x1080" -depth 8 963.png 963.rgb

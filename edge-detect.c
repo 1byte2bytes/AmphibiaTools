@@ -58,18 +58,19 @@ int main(void) {
 
 			// Get locations of all 8 surrounding pixels to this pixel
 			static size_t surroundingPixels[8];
-			surroundingPixels[0] = (pixel - FRAME_WIDTH) - 3;
-			surroundingPixels[1] = (pixel - FRAME_WIDTH);
-			surroundingPixels[2] = (pixel - FRAME_WIDTH) + 3;
-			surroundingPixels[3] = pixel - 3;
-			surroundingPixels[4] = pixel + 3;
-			surroundingPixels[5] = (pixel + FRAME_WIDTH) - 3;
-			surroundingPixels[6] = (pixel + FRAME_WIDTH);
-			surroundingPixels[7] = (pixel + FRAME_WIDTH) + 3;
+			surroundingPixels[0] = (((pixel/3) - FRAME_WIDTH)*3) - 3;
+			surroundingPixels[1] = (((pixel/3) - FRAME_WIDTH)*3);
+			surroundingPixels[2] = (((pixel/3) - FRAME_WIDTH)*3) + 3;
+			surroundingPixels[3] =  pixel - 3;
+			surroundingPixels[4] =  pixel + 3;
+			surroundingPixels[5] = (((pixel/3) + FRAME_WIDTH)*3) - 3;
+			surroundingPixels[6] = (((pixel/3) + FRAME_WIDTH)*3);
+			surroundingPixels[7] = (((pixel/3) + FRAME_WIDTH)*3) + 3;
+			printf("\r\n%d %d %d\r\n%d %d %d\r\n%d %d %d\r\n", surroundingPixels[0], surroundingPixels[1], surroundingPixels[2], surroundingPixels[3],
+				pixel, surroundingPixels[4], surroundingPixels[5], surroundingPixels[6], surroundingPixels[7]);
 
 			// Check if a surrounding pixel matches Anne's skin tone, accounting for tolerance settings
 			for (size_t sPixel = 0; sPixel < sizeof(surroundingPixels); sPixel++) {
-				printf("%d\r\n", surroundingPixels[sPixel]);
 				lineFrame[surroundingPixels[sPixel]] = 255;
 				if (	origFrame[surroundingPixels[sPixel]  ] <= ANNE_SKIN_R + ANNE_SKIN_TOLERANCE_R && 
 						origFrame[surroundingPixels[sPixel]+1] <= ANNE_SKIN_G + ANNE_SKIN_TOLERANCE_G && 

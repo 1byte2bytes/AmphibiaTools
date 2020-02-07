@@ -2,7 +2,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-/* --- BEGING SETTINGS --- */
+/* --- BEGIN SETTINGS --- */
 #define FRAME_HEIGHT 1080
 #define FRAME_WIDTH 1920
 // the work that would have to be done to make the filter support 
@@ -13,6 +13,7 @@
 #define BLACK_BORDER_TOLERANCE_G 50
 #define BLACK_BORDER_TOLERANCE_B 50
 
+// = Anne's skin =
 // #D49C72
 #define ANNE_SKIN_R 0xD4
 #define ANNE_SKIN_G 0x9C
@@ -31,6 +32,7 @@
 #define ANNE_SKIN_SHADE_TOLERANCE_B 17
 #define ANNE_SKIN_SHADE_MATCHING 3
 
+// = Anne's hair =
 // #6F3C37
 #define ANNE_HAIR_R 0x6F
 #define ANNE_HAIR_G 0x3C
@@ -48,7 +50,35 @@
 #define ANNE_HAIR_SHADE_TOLERANCE_G 15
 #define ANNE_HAIR_SHADE_TOLERANCE_B 15
 #define ANNE_HAIR_SHADE_MATCHING 3
-/* ---   END SETTINGS  --- */
+
+// = Anne's clothing =
+// #BDC6C0
+#define ANNE_SHIRT_R 0xBD
+#define ANNE_SHIRT_G 0xC6
+#define ANNE_SHIRT_B 0xC0
+#define ANNE_SHIRT_TOLERANCE_R 15
+#define ANNE_SHIRT_TOLERANCE_G 15
+#define ANNE_SHIRT_TOLERANCE_B 15
+#define ANNE_SHIRT_MATCHING 3
+
+// #9DA4AD
+#define ANNE_SHIRT_SHADE_R 0x9D
+#define ANNE_SHIRT_SHADE_G 0xA4
+#define ANNE_SHIRT_SHADE_B 0xAD
+#define ANNE_SHIRT_SHADE_TOLERANCE_R 15
+#define ANNE_SHIRT_SHADE_TOLERANCE_G 15
+#define ANNE_SHIRT_SHADE_TOLERANCE_B 15
+#define ANNE_SHIRT_SHADE_MATCHING 3
+
+// #A4708A <-- handles both skirt, collar, and purple in shirt badge
+#define ANNE_SKIRT_R 0xA4
+#define ANNE_SKIRT_G 0x70
+#define ANNE_SKIRT_B 0x8A
+#define ANNE_SKIRT_TOLERANCE_R 15
+#define ANNE_SKIRT_TOLERANCE_G 15
+#define ANNE_SKIRT_TOLERANCE_B 15
+#define ANNE_SKIRT_MATCHING 3
+/* ---  END SETTINGS  --- */
 
 // R, G, B values, then R, G, B tolerances
 // Helpder function to check if a pixel matches the colour values specified, within the tolerance values provided
@@ -59,6 +89,20 @@ int matchPixelColour(uint8_t* pixels, size_t pixel, uint8_t R, uint8_t G, uint8_
 			pixels[pixel  ] >= R - R_t && 
 			pixels[pixel+1] >= G - G_t && 
 			pixels[pixel+2] >= B - B_t) {
+		return 1;
+	}
+	return 0;
+}
+
+int surroundingPixelMatching(size_t* checkPixels, size_t checkPixelC, uint8_t* pixels, uint8_t R, uint8_t G, uint8_t B, 
+	uint8_t R_t, uint8_t G_t, uint8_t B_t, uint8_t matchCount) {
+	// Check if a surrounding pixel matches specified colour, accounting for tolerance settings
+	size_t matched = 0;
+	for (size_t sPixel = 0; sPixel < checkPixelC; sPixel++) {
+		matched += matchPixelColour(pixels, checkPixels[sPixel], 
+			R, G, B, R_t, R_t, B_t);
+	}
+	if (matched >= matchCount) {
 		return 1;
 	}
 	return 0;
@@ -121,57 +165,73 @@ int main(void) {
 			surroundingPixels[31] = (((pixel/3) + (FRAME_WIDTH*1))*3) + (3*4);
 
 			uint8_t matched = 0;
-			// Check if a surrounding pixel matches Anne's skin tone, accounting for tolerance settings
-			for (size_t sPixel = 0; sPixel < sizeof(surroundingPixels)/sizeof(size_t); sPixel++) {
-				matched += matchPixelColour(origFrame, surroundingPixels[sPixel], 
-					ANNE_SKIN_R, ANNE_SKIN_G, ANNE_SKIN_B,
-					ANNE_SKIN_TOLERANCE_R, ANNE_SKIN_TOLERANCE_G, ANNE_SKIN_TOLERANCE_B);
-			}
-			if (matched >= ANNE_SKIN_MATCHING) {
+
+			// Check if the border pixel is around Anne's skin
+			matched += surroundingPixelMatching(
+				surroundingPixels, sizeof(surroundingPixels)/sizeof(size_t), origFrame,
+				ANNE_SKIN_R, ANNE_SKIN_G, ANNE_SKIN_B, 
+				ANNE_SKIN_TOLERANCE_R, ANNE_SKIN_TOLERANCE_G, ANNE_SKIN_TOLERANCE_B,
+				ANNE_SKIN_MATCHING
+			);
+			matched += surroundingPixelMatching(
+				surroundingPixels, sizeof(surroundingPixels)/sizeof(size_t), origFrame,
+				ANNE_SKIN_SHADE_R, ANNE_SKIN_SHADE_G, ANNE_SKIN_SHADE_B, 
+				ANNE_SKIN_SHADE_TOLERANCE_R, ANNE_SKIN_SHADE_TOLERANCE_G, ANNE_SKIN_SHADE_TOLERANCE_B,
+				ANNE_SKIN_SHADE_MATCHING
+			);
+			if (matched >= 1) {
 				lineFrame[pixel] = 0;
 				lineFrame[pixel+1] = 0;
 				lineFrame[pixel+2] = 255;
 			}
 			matched = 0;
 
-			// Check if a surrounding pixel matches Anne's skin shade colour, accounting for tolerance settings
-			for (size_t sPixel = 0; sPixel < sizeof(surroundingPixels)/sizeof(size_t); sPixel++) {
-				matched += matchPixelColour(origFrame, surroundingPixels[sPixel], 
-					ANNE_SKIN_SHADE_R, ANNE_SKIN_SHADE_G, ANNE_SKIN_SHADE_B,
-					ANNE_SKIN_SHADE_TOLERANCE_R, ANNE_SKIN_SHADE_TOLERANCE_G, ANNE_SKIN_SHADE_TOLERANCE_B);
-			}
-			if (matched >= ANNE_SKIN_SHADE_MATCHING) {
+			// Check if the border pixel is around Anne's hair
+			matched += surroundingPixelMatching(
+				surroundingPixels, sizeof(surroundingPixels)/sizeof(size_t), origFrame,
+				ANNE_HAIR_R, ANNE_HAIR_G, ANNE_HAIR_B, 
+				ANNE_HAIR_TOLERANCE_R, ANNE_HAIR_TOLERANCE_G, ANNE_HAIR_TOLERANCE_B,
+				ANNE_HAIR_MATCHING
+			);
+			matched += surroundingPixelMatching(
+				surroundingPixels, sizeof(surroundingPixels)/sizeof(size_t), origFrame,
+				ANNE_HAIR_SHADE_R, ANNE_HAIR_SHADE_G, ANNE_HAIR_SHADE_B, 
+				ANNE_HAIR_SHADE_TOLERANCE_R, ANNE_HAIR_SHADE_TOLERANCE_G, ANNE_HAIR_SHADE_TOLERANCE_B,
+				ANNE_HAIR_SHADE_MATCHING
+			);
+			if (matched >= 1) {
 				lineFrame[pixel] = 0;
+				lineFrame[pixel+1] = 255;
+				lineFrame[pixel+2] = 0;
+			}
+			matched = 0;
+
+			// Check if the border pixel is around Anne's clothes
+			matched += surroundingPixelMatching(
+				surroundingPixels, sizeof(surroundingPixels)/sizeof(size_t), origFrame,
+				ANNE_SHIRT_R, ANNE_SHIRT_G, ANNE_SHIRT_B, 
+				ANNE_SHIRT_TOLERANCE_R, ANNE_SHIRT_TOLERANCE_G, ANNE_SHIRT_TOLERANCE_B,
+				ANNE_SHIRT_MATCHING
+			);
+			matched += surroundingPixelMatching(
+				surroundingPixels, sizeof(surroundingPixels)/sizeof(size_t), origFrame,
+				ANNE_SHIRT_SHADE_R, ANNE_SHIRT_SHADE_G, ANNE_SHIRT_SHADE_B, 
+				ANNE_SHIRT_SHADE_TOLERANCE_R, ANNE_SHIRT_SHADE_TOLERANCE_G, ANNE_SHIRT_SHADE_TOLERANCE_B,
+				ANNE_SHIRT_SHADE_MATCHING
+			);
+			matched += surroundingPixelMatching(
+				surroundingPixels, sizeof(surroundingPixels)/sizeof(size_t), origFrame,
+				ANNE_SKIRT_R, ANNE_SKIRT_G, ANNE_SKIRT_B, 
+				ANNE_SKIRT_TOLERANCE_R, ANNE_SKIRT_TOLERANCE_G, ANNE_SKIRT_TOLERANCE_B,
+				ANNE_SKIRT_MATCHING
+			);
+			if (matched >= 1) {
+				lineFrame[pixel] = 255;
 				lineFrame[pixel+1] = 0;
-				lineFrame[pixel+2] = 255;
-			}
-			matched = 0;
-
-			// Check if a surrounding pixel matches Anne's hair colour, accounting for tolerance settings
-			for (size_t sPixel = 0; sPixel < sizeof(surroundingPixels)/sizeof(size_t); sPixel++) {
-				matched += matchPixelColour(origFrame, surroundingPixels[sPixel], 
-					ANNE_HAIR_R, ANNE_HAIR_G, ANNE_HAIR_B,
-					ANNE_HAIR_TOLERANCE_R, ANNE_HAIR_TOLERANCE_G, ANNE_HAIR_TOLERANCE_B);
-			}
-			if (matched >= ANNE_HAIR_MATCHING) {
-				lineFrame[pixel] = 0;
-				lineFrame[pixel+1] = 255;
 				lineFrame[pixel+2] = 0;
 			}
 			matched = 0;
 
-			// Check if a surrounding pixel matches Anne's hair shade colour, accounting for tolerance settings
-			for (size_t sPixel = 0; sPixel < sizeof(surroundingPixels)/sizeof(size_t); sPixel++) {
-				matched += matchPixelColour(origFrame, surroundingPixels[sPixel], 
-					ANNE_HAIR_SHADE_R, ANNE_HAIR_SHADE_G, ANNE_HAIR_SHADE_B,
-					ANNE_HAIR_SHADE_TOLERANCE_R, ANNE_HAIR_SHADE_TOLERANCE_G, ANNE_HAIR_SHADE_TOLERANCE_B);
-			}
-			if (matched >= ANNE_HAIR_SHADE_MATCHING) {
-				lineFrame[pixel] = 0;
-				lineFrame[pixel+1] = 255;
-				lineFrame[pixel+2] = 0;
-			}
-			matched = 0;
 		}
 	}
 

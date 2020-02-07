@@ -50,6 +50,20 @@
 #define ANNE_HAIR_SHADE_MATCHING 3
 /* ---   END SETTINGS  --- */
 
+// R, G, B values, then R, G, B tolerances
+// Helpder function to check if a pixel matches the colour values specified, within the tolerance values provided
+int matchPixelColour(uint8_t* pixels, size_t pixel, uint8_t R, uint8_t G, uint8_t B, uint8_t R_t, uint8_t G_t, uint8_t B_t) {
+	if (	pixels[pixel  ] <= R + R_t && 
+			pixels[pixel+1] <= G + G_t && 
+			pixels[pixel+2] <= B + B_t &&
+			pixels[pixel  ] >= R - R_t && 
+			pixels[pixel+1] >= G - G_t && 
+			pixels[pixel+2] >= B - B_t) {
+		return 1;
+	}
+	return 0;
+}
+
 int main(void) {
 	// Create frame buffers
 	static uint8_t origFrame[FRAME_BUF_SIZE];
@@ -59,20 +73,6 @@ int main(void) {
 	FILE *rgbFile = fopen("963.rgb", "rb");
 	fread(origFrame, sizeof(uint8_t), FRAME_BUF_SIZE, rgbFile);
 	fclose(rgbFile);
-
-	printf("--- Anne's skin tolerances ---\r\nRed: >= %X && <= %X\r\nGreen: >= %X && <= %X\r\nBlue: >= %X && <= %X\r\n#%X%X%X -> #%X%X%X\r\n", 
-		ANNE_SKIN_R - ANNE_SKIN_TOLERANCE_R, ANNE_SKIN_R + ANNE_SKIN_TOLERANCE_R,
-		ANNE_SKIN_G - ANNE_SKIN_TOLERANCE_G, ANNE_SKIN_G + ANNE_SKIN_TOLERANCE_G,
-		ANNE_SKIN_B - ANNE_SKIN_TOLERANCE_B, ANNE_SKIN_B + ANNE_SKIN_TOLERANCE_B,
-		ANNE_SKIN_R - ANNE_SKIN_TOLERANCE_R, ANNE_SKIN_G - ANNE_SKIN_TOLERANCE_G, ANNE_SKIN_B - ANNE_SKIN_TOLERANCE_B,
-		ANNE_SKIN_R + ANNE_SKIN_TOLERANCE_R, ANNE_SKIN_G + ANNE_SKIN_TOLERANCE_G, ANNE_SKIN_B + ANNE_SKIN_TOLERANCE_B);
-
-	printf("--- Anne's hair tolerances ---\r\nRed: >= %X && <= %X\r\nGreen: >= %X && <= %X\r\nBlue: >= %X && <= %X\r\n#%X%X%X -> #%X%X%X\r\n", 
-		ANNE_HAIR_R - ANNE_HAIR_TOLERANCE_R, ANNE_HAIR_R + ANNE_HAIR_TOLERANCE_R,
-		ANNE_HAIR_G - ANNE_HAIR_TOLERANCE_G, ANNE_HAIR_G + ANNE_HAIR_TOLERANCE_G,
-		ANNE_HAIR_B - ANNE_HAIR_TOLERANCE_B, ANNE_HAIR_B + ANNE_HAIR_TOLERANCE_B,
-		ANNE_HAIR_R - ANNE_HAIR_TOLERANCE_R, ANNE_HAIR_G - ANNE_HAIR_TOLERANCE_G, ANNE_HAIR_B - ANNE_HAIR_TOLERANCE_B,
-		ANNE_HAIR_R + ANNE_HAIR_TOLERANCE_R, ANNE_HAIR_G + ANNE_HAIR_TOLERANCE_G, ANNE_HAIR_B + ANNE_HAIR_TOLERANCE_B);
 
 	// For each pixel in the frame (keep in mind each pixel is 3 uint8_ts long)
 	for (size_t pixel = 0; pixel < (FRAME_BUF_SIZE); pixel += 3) {
@@ -123,15 +123,9 @@ int main(void) {
 			uint8_t matched = 0;
 			// Check if a surrounding pixel matches Anne's skin tone, accounting for tolerance settings
 			for (size_t sPixel = 0; sPixel < sizeof(surroundingPixels)/sizeof(size_t); sPixel++) {
-				//lineFrame[surroundingPixels[sPixel]] = 255;
-				if (	origFrame[surroundingPixels[sPixel]  ] <= ANNE_SKIN_R + ANNE_SKIN_TOLERANCE_R && 
-						origFrame[surroundingPixels[sPixel]+1] <= ANNE_SKIN_G + ANNE_SKIN_TOLERANCE_G && 
-						origFrame[surroundingPixels[sPixel]+2] <= ANNE_SKIN_B + ANNE_SKIN_TOLERANCE_B &&
-						origFrame[surroundingPixels[sPixel]  ] >= ANNE_SKIN_R - ANNE_SKIN_TOLERANCE_R && 
-						origFrame[surroundingPixels[sPixel]+1] >= ANNE_SKIN_G - ANNE_SKIN_TOLERANCE_G && 
-						origFrame[surroundingPixels[sPixel]+2] >= ANNE_SKIN_B - ANNE_SKIN_TOLERANCE_B) {
-					matched++;
-				}
+				matched += matchPixelColour(origFrame, surroundingPixels[sPixel], 
+					ANNE_SKIN_R, ANNE_SKIN_G, ANNE_SKIN_B,
+					ANNE_SKIN_TOLERANCE_R, ANNE_SKIN_TOLERANCE_G, ANNE_SKIN_TOLERANCE_B);
 			}
 			if (matched >= ANNE_SKIN_MATCHING) {
 				lineFrame[pixel] = 0;
@@ -142,15 +136,9 @@ int main(void) {
 
 			// Check if a surrounding pixel matches Anne's skin shade colour, accounting for tolerance settings
 			for (size_t sPixel = 0; sPixel < sizeof(surroundingPixels)/sizeof(size_t); sPixel++) {
-				//lineFrame[surroundingPixels[sPixel]] = 255;
-				if (	origFrame[surroundingPixels[sPixel]  ] <= ANNE_SKIN_SHADE_R + ANNE_SKIN_SHADE_TOLERANCE_R && 
-						origFrame[surroundingPixels[sPixel]+1] <= ANNE_SKIN_SHADE_G + ANNE_SKIN_SHADE_TOLERANCE_G && 
-						origFrame[surroundingPixels[sPixel]+2] <= ANNE_SKIN_SHADE_B + ANNE_SKIN_SHADE_TOLERANCE_B &&
-						origFrame[surroundingPixels[sPixel]  ] >= ANNE_SKIN_SHADE_R - ANNE_SKIN_SHADE_TOLERANCE_R && 
-						origFrame[surroundingPixels[sPixel]+1] >= ANNE_SKIN_SHADE_G - ANNE_SKIN_SHADE_TOLERANCE_G && 
-						origFrame[surroundingPixels[sPixel]+2] >= ANNE_SKIN_SHADE_B - ANNE_SKIN_SHADE_TOLERANCE_B) {
-					matched++;
-				}
+				matched += matchPixelColour(origFrame, surroundingPixels[sPixel], 
+					ANNE_SKIN_SHADE_R, ANNE_SKIN_SHADE_G, ANNE_SKIN_SHADE_B,
+					ANNE_SKIN_SHADE_TOLERANCE_R, ANNE_SKIN_SHADE_TOLERANCE_G, ANNE_SKIN_SHADE_TOLERANCE_B);
 			}
 			if (matched >= ANNE_SKIN_SHADE_MATCHING) {
 				lineFrame[pixel] = 0;
@@ -161,15 +149,9 @@ int main(void) {
 
 			// Check if a surrounding pixel matches Anne's hair colour, accounting for tolerance settings
 			for (size_t sPixel = 0; sPixel < sizeof(surroundingPixels)/sizeof(size_t); sPixel++) {
-				//lineFrame[surroundingPixels[sPixel]] = 255;
-				if (	origFrame[surroundingPixels[sPixel]  ] <= ANNE_HAIR_R + ANNE_HAIR_TOLERANCE_R && 
-						origFrame[surroundingPixels[sPixel]+1] <= ANNE_HAIR_G + ANNE_HAIR_TOLERANCE_G && 
-						origFrame[surroundingPixels[sPixel]+2] <= ANNE_HAIR_B + ANNE_HAIR_TOLERANCE_B &&
-						origFrame[surroundingPixels[sPixel]  ] >= ANNE_HAIR_R - ANNE_HAIR_TOLERANCE_R && 
-						origFrame[surroundingPixels[sPixel]+1] >= ANNE_HAIR_G - ANNE_HAIR_TOLERANCE_G && 
-						origFrame[surroundingPixels[sPixel]+2] >= ANNE_HAIR_B - ANNE_HAIR_TOLERANCE_B) {
-					matched++;
-				}
+				matched += matchPixelColour(origFrame, surroundingPixels[sPixel], 
+					ANNE_HAIR_R, ANNE_HAIR_G, ANNE_HAIR_B,
+					ANNE_HAIR_TOLERANCE_R, ANNE_HAIR_TOLERANCE_G, ANNE_HAIR_TOLERANCE_B);
 			}
 			if (matched >= ANNE_HAIR_MATCHING) {
 				lineFrame[pixel] = 0;
@@ -180,15 +162,9 @@ int main(void) {
 
 			// Check if a surrounding pixel matches Anne's hair shade colour, accounting for tolerance settings
 			for (size_t sPixel = 0; sPixel < sizeof(surroundingPixels)/sizeof(size_t); sPixel++) {
-				//lineFrame[surroundingPixels[sPixel]] = 255;
-				if (	origFrame[surroundingPixels[sPixel]  ] <= ANNE_HAIR_SHADE_R + ANNE_HAIR_SHADE_TOLERANCE_R && 
-						origFrame[surroundingPixels[sPixel]+1] <= ANNE_HAIR_SHADE_G + ANNE_HAIR_SHADE_TOLERANCE_G && 
-						origFrame[surroundingPixels[sPixel]+2] <= ANNE_HAIR_SHADE_B + ANNE_HAIR_SHADE_TOLERANCE_B &&
-						origFrame[surroundingPixels[sPixel]  ] >= ANNE_HAIR_SHADE_R - ANNE_HAIR_SHADE_TOLERANCE_R && 
-						origFrame[surroundingPixels[sPixel]+1] >= ANNE_HAIR_SHADE_G - ANNE_HAIR_SHADE_TOLERANCE_G && 
-						origFrame[surroundingPixels[sPixel]+2] >= ANNE_HAIR_SHADE_B - ANNE_HAIR_SHADE_TOLERANCE_B) {
-					matched++;
-				}
+				matched += matchPixelColour(origFrame, surroundingPixels[sPixel], 
+					ANNE_HAIR_SHADE_R, ANNE_HAIR_SHADE_G, ANNE_HAIR_SHADE_B,
+					ANNE_HAIR_SHADE_TOLERANCE_R, ANNE_HAIR_SHADE_TOLERANCE_G, ANNE_HAIR_SHADE_TOLERANCE_B);
 			}
 			if (matched >= ANNE_HAIR_SHADE_MATCHING) {
 				lineFrame[pixel] = 0;

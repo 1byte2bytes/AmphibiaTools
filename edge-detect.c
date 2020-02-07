@@ -68,7 +68,7 @@
 #define ANNE_SHIRT_SHADE_TOLERANCE_R 15
 #define ANNE_SHIRT_SHADE_TOLERANCE_G 15
 #define ANNE_SHIRT_SHADE_TOLERANCE_B 15
-#define ANNE_SHIRT_SHADE_MATCHING 3
+#define ANNE_SHIRT_SHADE_MATCHING 2
 
 // #A4708A <-- handles both skirt, collar, and purple in shirt badge
 #define ANNE_SKIRT_R 0xA4
@@ -78,6 +78,15 @@
 #define ANNE_SKIRT_TOLERANCE_G 15
 #define ANNE_SKIRT_TOLERANCE_B 15
 #define ANNE_SKIRT_MATCHING 3
+
+// #8B5A7B
+#define ANNE_SKIRT_SHADE_R 0x8B
+#define ANNE_SKIRT_SHADE_G 0x5A
+#define ANNE_SKIRT_SHADE_B 0x7B
+#define ANNE_SKIRT_SHADE_TOLERANCE_R 15
+#define ANNE_SKIRT_SHADE_TOLERANCE_G 15
+#define ANNE_SKIRT_SHADE_TOLERANCE_B 15
+#define ANNE_SKIRT_SHADE_MATCHING 1
 /* ---  END SETTINGS  --- */
 
 // R, G, B values, then R, G, B tolerances
@@ -224,6 +233,12 @@ int main(void) {
 				ANNE_SKIRT_R, ANNE_SKIRT_G, ANNE_SKIRT_B, 
 				ANNE_SKIRT_TOLERANCE_R, ANNE_SKIRT_TOLERANCE_G, ANNE_SKIRT_TOLERANCE_B,
 				ANNE_SKIRT_MATCHING
+			);
+			matched += surroundingPixelMatching(
+				surroundingPixels, sizeof(surroundingPixels)/sizeof(size_t), origFrame,
+				ANNE_SKIRT_SHADE_R, ANNE_SKIRT_SHADE_G, ANNE_SKIRT_SHADE_B, 
+				ANNE_SKIRT_SHADE_TOLERANCE_R, ANNE_SKIRT_SHADE_TOLERANCE_G, ANNE_SKIRT_SHADE_TOLERANCE_B,
+				ANNE_SKIRT_SHADE_MATCHING
 			);
 			if (matched >= 1) {
 				lineFrame[pixel] = 255;

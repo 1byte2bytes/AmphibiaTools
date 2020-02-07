@@ -17,17 +17,17 @@
 #define ANNE_SKIN_R 0xD4
 #define ANNE_SKIN_G 0x9C
 #define ANNE_SKIN_B 0x72
-#define ANNE_SKIN_TOLERANCE_R 30
-#define ANNE_SKIN_TOLERANCE_G 30
-#define ANNE_SKIN_TOLERANCE_B 30
+#define ANNE_SKIN_TOLERANCE_R 15
+#define ANNE_SKIN_TOLERANCE_G 15
+#define ANNE_SKIN_TOLERANCE_B 15
 
 // #6F3C37
 #define ANNE_HAIR_R 0x6F
 #define ANNE_HAIR_G 0x3C
 #define ANNE_HAIR_B 0x37
-#define ANNE_HAIR_TOLERANCE_R 30
-#define ANNE_HAIR_TOLERANCE_G 30
-#define ANNE_HAIR_TOLERANCE_B 30
+#define ANNE_HAIR_TOLERANCE_R 15
+#define ANNE_HAIR_TOLERANCE_G 15
+#define ANNE_HAIR_TOLERANCE_B 15
 /* ---   END SETTINGS  --- */
 
 int main(void) {
@@ -40,10 +40,19 @@ int main(void) {
 	fread(origFrame, sizeof(uint8_t), FRAME_BUF_SIZE, rgbFile);
 	fclose(rgbFile);
 
-	printf("--- Anne's skin tolerances ---\r\nRed: >= %x && <= %x\r\nGreen: >= %x && <= %x\r\nBlue: >= %x && <= %x\r\n", 
+	printf("--- Anne's skin tolerances ---\r\nRed: >= %X && <= %X\r\nGreen: >= %X && <= %X\r\nBlue: >= %X && <= %X\r\n#%X%X%X -> #%X%X%X\r\n", 
 		ANNE_SKIN_R - ANNE_SKIN_TOLERANCE_R, ANNE_SKIN_R + ANNE_SKIN_TOLERANCE_R,
 		ANNE_SKIN_G - ANNE_SKIN_TOLERANCE_G, ANNE_SKIN_G + ANNE_SKIN_TOLERANCE_G,
-		ANNE_SKIN_B - ANNE_SKIN_TOLERANCE_B, ANNE_SKIN_B + ANNE_SKIN_TOLERANCE_B);
+		ANNE_SKIN_B - ANNE_SKIN_TOLERANCE_B, ANNE_SKIN_B + ANNE_SKIN_TOLERANCE_B,
+		ANNE_SKIN_R - ANNE_SKIN_TOLERANCE_R, ANNE_SKIN_G - ANNE_SKIN_TOLERANCE_G, ANNE_SKIN_B - ANNE_SKIN_TOLERANCE_B,
+		ANNE_SKIN_R + ANNE_SKIN_TOLERANCE_R, ANNE_SKIN_G + ANNE_SKIN_TOLERANCE_G, ANNE_SKIN_B + ANNE_SKIN_TOLERANCE_B);
+
+	printf("--- Anne's hair tolerances ---\r\nRed: >= %X && <= %X\r\nGreen: >= %X && <= %X\r\nBlue: >= %X && <= %X\r\n#%X%X%X -> #%X%X%X\r\n", 
+		ANNE_HAIR_R - ANNE_HAIR_TOLERANCE_R, ANNE_HAIR_R + ANNE_HAIR_TOLERANCE_R,
+		ANNE_HAIR_G - ANNE_HAIR_TOLERANCE_G, ANNE_HAIR_G + ANNE_HAIR_TOLERANCE_G,
+		ANNE_HAIR_B - ANNE_HAIR_TOLERANCE_B, ANNE_HAIR_B + ANNE_HAIR_TOLERANCE_B,
+		ANNE_HAIR_R - ANNE_HAIR_TOLERANCE_R, ANNE_HAIR_G - ANNE_HAIR_TOLERANCE_G, ANNE_HAIR_B - ANNE_HAIR_TOLERANCE_B,
+		ANNE_HAIR_R + ANNE_HAIR_TOLERANCE_R, ANNE_HAIR_G + ANNE_HAIR_TOLERANCE_G, ANNE_HAIR_B + ANNE_HAIR_TOLERANCE_B);
 
 	// For each pixel in the frame (keep in mind each pixel is 3 uint8_ts long)
 	for (size_t pixel = 0; pixel < (FRAME_BUF_SIZE); pixel += 3) {
@@ -56,22 +65,44 @@ int main(void) {
 			lineFrame[pixel+1] = 255;
 			lineFrame[pixel+2] = 255;
 
-			// Get locations of all 8 surrounding pixels to this pixel
-			static size_t surroundingPixels[8];
-			surroundingPixels[0] = (((pixel/3) - FRAME_WIDTH)*3) - 3;
-			surroundingPixels[1] = (((pixel/3) - FRAME_WIDTH)*3);
-			surroundingPixels[2] = (((pixel/3) - FRAME_WIDTH)*3) + 3;
-			surroundingPixels[3] =  pixel - 3;
-			surroundingPixels[4] =  pixel + 3;
-			surroundingPixels[5] = (((pixel/3) + FRAME_WIDTH)*3) - 3;
-			surroundingPixels[6] = (((pixel/3) + FRAME_WIDTH)*3);
-			surroundingPixels[7] = (((pixel/3) + FRAME_WIDTH)*3) + 3;
-			printf("\r\n%d %d %d\r\n%d %d %d\r\n%d %d %d\r\n", surroundingPixels[0], surroundingPixels[1], surroundingPixels[2], surroundingPixels[3],
-				pixel, surroundingPixels[4], surroundingPixels[5], surroundingPixels[6], surroundingPixels[7]);
+			// Get all pixels at the border of a 4x4 square from this location
+			static size_t surroundingPixels[32];
+			surroundingPixels[0] = (((pixel/3) - (FRAME_WIDTH*1))*3) - (3*4);
+			surroundingPixels[1] = (((pixel/3) - (FRAME_WIDTH*2))*3) - (3*4);
+			surroundingPixels[2] = (((pixel/3) - (FRAME_WIDTH*3))*3) - (3*4);
+			surroundingPixels[3] = (((pixel/3) - (FRAME_WIDTH*4))*3) - (3*4);
+			surroundingPixels[4] = (((pixel/3) - (FRAME_WIDTH*4))*3) - (3*3);
+			surroundingPixels[5] = (((pixel/3) - (FRAME_WIDTH*4))*3) - (3*2);
+			surroundingPixels[6] = (((pixel/3) - (FRAME_WIDTH*4))*3) - (3*1);
+			surroundingPixels[7] = (((pixel/3) - (FRAME_WIDTH*4))*3);
+			surroundingPixels[8] = (((pixel/3) - (FRAME_WIDTH*4))*3) + (3*1);
+			surroundingPixels[9] = (((pixel/3) - (FRAME_WIDTH*4))*3) + (3*2);
+			surroundingPixels[10] = (((pixel/3) - (FRAME_WIDTH*4))*3) + (3*3);
+			surroundingPixels[11] = (((pixel/3) - (FRAME_WIDTH*4))*3) + (3*4);
+			surroundingPixels[12] = (((pixel/3) - (FRAME_WIDTH*3))*3) + (3*4);
+			surroundingPixels[13] = (((pixel/3) - (FRAME_WIDTH*2))*3) + (3*4);
+			surroundingPixels[14] = (((pixel/3) - (FRAME_WIDTH*1))*3) + (3*4);
+			surroundingPixels[15] =  pixel - (3*4);
+			surroundingPixels[16] =  pixel + (3*4);
+			surroundingPixels[17] = (((pixel/3) + (FRAME_WIDTH*1))*3) - (3*4);
+			surroundingPixels[18] = (((pixel/3) + (FRAME_WIDTH*2))*3) - (3*4);
+			surroundingPixels[19] = (((pixel/3) + (FRAME_WIDTH*3))*3) - (3*4);
+			surroundingPixels[20] = (((pixel/3) + (FRAME_WIDTH*4))*3) - (3*4);
+			surroundingPixels[21] = (((pixel/3) + (FRAME_WIDTH*4))*3) - (3*3);
+			surroundingPixels[22] = (((pixel/3) + (FRAME_WIDTH*4))*3) - (3*2);
+			surroundingPixels[23] = (((pixel/3) + (FRAME_WIDTH*4))*3) - (3*1);
+			surroundingPixels[24] = (((pixel/3) + (FRAME_WIDTH*4))*3);
+			surroundingPixels[25] = (((pixel/3) + (FRAME_WIDTH*4))*3) + (3*1);
+			surroundingPixels[26] = (((pixel/3) + (FRAME_WIDTH*4))*3) + (3*2);
+			surroundingPixels[27] = (((pixel/3) + (FRAME_WIDTH*4))*3) + (3*3);
+			surroundingPixels[28] = (((pixel/3) + (FRAME_WIDTH*4))*3) + (3*4);
+			surroundingPixels[29] = (((pixel/3) + (FRAME_WIDTH*3))*3) + (3*4);
+			surroundingPixels[30] = (((pixel/3) + (FRAME_WIDTH*2))*3) + (3*4);
+			surroundingPixels[31] = (((pixel/3) + (FRAME_WIDTH*1))*3) + (3*4);
 
 			// Check if a surrounding pixel matches Anne's skin tone, accounting for tolerance settings
-			for (size_t sPixel = 0; sPixel < sizeof(surroundingPixels); sPixel++) {
-				lineFrame[surroundingPixels[sPixel]] = 255;
+			for (size_t sPixel = 0; sPixel < sizeof(surroundingPixels)/sizeof(size_t); sPixel++) {
+				//lineFrame[surroundingPixels[sPixel]] = 255;
 				if (	origFrame[surroundingPixels[sPixel]  ] <= ANNE_SKIN_R + ANNE_SKIN_TOLERANCE_R && 
 						origFrame[surroundingPixels[sPixel]+1] <= ANNE_SKIN_G + ANNE_SKIN_TOLERANCE_G && 
 						origFrame[surroundingPixels[sPixel]+2] <= ANNE_SKIN_B + ANNE_SKIN_TOLERANCE_B &&
@@ -81,6 +112,21 @@ int main(void) {
 					lineFrame[pixel] = 0;
 					lineFrame[pixel+1] = 0;
 					lineFrame[pixel+2] = 255;
+				}
+			}
+
+			// Check if a surrounding pixel matches Anne's hair colour, accounting for tolerance settings
+			for (size_t sPixel = 0; sPixel < sizeof(surroundingPixels)/sizeof(size_t); sPixel++) {
+				//lineFrame[surroundingPixels[sPixel]] = 255;
+				if (	origFrame[surroundingPixels[sPixel]  ] <= ANNE_HAIR_R + ANNE_HAIR_TOLERANCE_R && 
+						origFrame[surroundingPixels[sPixel]+1] <= ANNE_HAIR_G + ANNE_HAIR_TOLERANCE_G && 
+						origFrame[surroundingPixels[sPixel]+2] <= ANNE_HAIR_B + ANNE_HAIR_TOLERANCE_B &&
+						origFrame[surroundingPixels[sPixel]  ] >= ANNE_HAIR_R - ANNE_HAIR_TOLERANCE_R && 
+						origFrame[surroundingPixels[sPixel]+1] >= ANNE_HAIR_G - ANNE_HAIR_TOLERANCE_G && 
+						origFrame[surroundingPixels[sPixel]+2] >= ANNE_HAIR_B - ANNE_HAIR_TOLERANCE_B) {
+					lineFrame[pixel] = 0;
+					lineFrame[pixel+1] = 255;
+					lineFrame[pixel+2] = 0;
 				}
 			}
 		}

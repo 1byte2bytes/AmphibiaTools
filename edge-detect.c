@@ -101,6 +101,7 @@
 // R, G, B values, then R, G, B tolerances
 // Helpder function to check if a pixel matches the colour values specified, within the tolerance values provided
 int matchPixelColour(uint8_t* pixels, size_t pixel, uint8_t R, uint8_t G, uint8_t B, uint8_t R_t, uint8_t G_t, uint8_t B_t) {
+	if (pixel + 2 > FRAME_BUF_SIZE) { return 0; }
 	if (	pixels[pixel  ] <= R + R_t && 
 			pixels[pixel+1] <= G + G_t && 
 			pixels[pixel+2] <= B + B_t &&

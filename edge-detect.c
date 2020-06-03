@@ -9,9 +9,10 @@
 // more than 8 bit depth is more than it's worth at this time
 #define FRAME_BUF_SIZE FRAME_WIDTH*FRAME_HEIGHT*3
 
-#define BLACK_BORDER_TOLERANCE_R 50
-#define BLACK_BORDER_TOLERANCE_G 50
-#define BLACK_BORDER_TOLERANCE_B 50
+#define BLACK_BORDER_LEVEL_R 50
+#define BLACK_BORDER_LEVEL_G 50
+#define BLACK_BORDER_LEVEL_B 50
+#define BLACK_BORDER_TOLERANCE 20
 
 // = Anne's skin =
 // #D49C72
@@ -128,7 +129,7 @@ int surroundingPixelMatching(size_t* checkPixels, size_t checkPixelC, uint8_t* p
 }
 
 int main(int argc, char *argv[]) {
-	if (argc != 2) {
+	if (argc != 3) {
 		printf("Not enough arguments\n");
 		return -1;
 	}
@@ -145,9 +146,20 @@ int main(int argc, char *argv[]) {
 	// For each pixel in the frame (keep in mind each pixel is 3 uint8_ts long)
 	for (size_t pixel = 0; pixel < (FRAME_BUF_SIZE); pixel += 3) {
 		// Detect if the pixel's R, G, and B values are all <= 30
-		if (	origFrame[pixel] <= BLACK_BORDER_TOLERANCE_R && 
-				origFrame[pixel+1] <= BLACK_BORDER_TOLERANCE_G && 
-				origFrame[pixel+2] <= BLACK_BORDER_TOLERANCE_B) {
+		if (	origFrame[pixel] <= BLACK_BORDER_LEVEL_R && 
+				origFrame[pixel+1] <= BLACK_BORDER_LEVEL_G && 
+				origFrame[pixel+2] <= BLACK_BORDER_LEVEL_B) {
+			
+			// Check that the pixel is a shade of black, not a dark colour. Check that the R, G, and B are all close to each other
+			int8_t blackGMinusR = origFrame[pixel+1] - origFrame[pixel];
+			int8_t blackBMinusR = origFrame[pixel+2] - origFrame[pixel];
+			if (blackGMinusR > BLACK_BORDER_TOLERANCE || blackGMinusR < -BLACK_BORDER_TOLERANCE) {
+				continue;
+			}
+			if (blackBMinusR > BLACK_BORDER_TOLERANCE || blackBMinusR < -BLACK_BORDER_TOLERANCE) {
+				continue;
+			}
+			
 			// Write a white pixel to the line frame buffer for this pixel
 			lineFrame[pixel] = 255;
 			lineFrame[pixel+1] = 255;
@@ -272,7 +284,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	// Save our line file
-	FILE *lineFile = fopen("line.rgb", "wb");
+	FILE *lineFile = fopen(argv[2], "wb");
 	fwrite(lineFrame, sizeof(uint8_t), FRAME_BUF_SIZE, lineFile);
 	fclose(lineFile);
 
